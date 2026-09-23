@@ -1,0 +1,1580 @@
+import javax.swing.*;
+import javax.swing.border.EmptyBorder;
+import java.awt.*;
+import java.util.List;
+
+public class ATMGui extends JFrame {
+
+    private final Color BACKGROUND = new Color(10, 18, 32);
+    private final Color CARD = new Color(20, 31, 52);
+    private final Color PRIMARY = new Color(52, 152, 219);
+    private final Color SUCCESS = new Color(46, 204, 113);
+    private final Color DANGER = new Color(231, 76, 60);
+    private final Color TEXT = new Color(245, 247, 250);
+    private final Color MUTED = new Color(170, 180, 195);
+    private final Color BORDER = new Color(60, 78, 105);
+
+    private JTextField accountNumberField;
+    private JPasswordField pinField;
+    private JLabel messageLabel;
+
+    private Account currentAccount;
+
+    public ATMGui() {
+
+        setTitle("ATM Simulator");
+        setSize(650, 700);
+        setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+        setLocationRelativeTo(null);
+        setResizable(false);
+
+        buildLoginScreen();
+
+        setVisible(true);
+    }
+
+    // =========================================================
+    // LOGIN SCREEN
+    // =========================================================
+
+    private void buildLoginScreen() {
+
+        JPanel mainPanel = createMainPanel();
+
+        JPanel headerPanel = new JPanel();
+        headerPanel.setOpaque(false);
+        headerPanel.setLayout(
+                new BoxLayout(
+                        headerPanel,
+                        BoxLayout.Y_AXIS
+                )
+        );
+
+        JLabel titleLabel =
+                createTitle("ATM SIMULATOR", 30);
+
+        JLabel subtitleLabel =
+                createSubtitle("Secure Banking Terminal");
+
+        headerPanel.add(titleLabel);
+        headerPanel.add(
+                Box.createVerticalStrut(8)
+        );
+        headerPanel.add(subtitleLabel);
+
+        mainPanel.add(
+                headerPanel,
+                BorderLayout.NORTH
+        );
+
+        JPanel cardPanel = createCardPanel();
+
+        JLabel loginTitle =
+                createTitle("SIGN IN", 22);
+
+        cardPanel.add(loginTitle);
+
+        cardPanel.add(
+                Box.createVerticalStrut(25)
+        );
+
+        JLabel accountLabel =
+                createLabel("Account Number");
+
+        accountNumberField =
+                new JTextField();
+
+        styleTextField(accountNumberField);
+
+        cardPanel.add(accountLabel);
+
+        cardPanel.add(
+                Box.createVerticalStrut(8)
+        );
+
+        cardPanel.add(accountNumberField);
+
+        cardPanel.add(
+                Box.createVerticalStrut(20)
+        );
+
+        JLabel pinLabel =
+                createLabel("PIN");
+
+        pinField =
+                new JPasswordField();
+
+        styleTextField(pinField);
+
+        cardPanel.add(pinLabel);
+
+        cardPanel.add(
+                Box.createVerticalStrut(8)
+        );
+
+        cardPanel.add(pinField);
+
+        cardPanel.add(
+                Box.createVerticalStrut(25)
+        );
+
+        JButton loginButton =
+                createButton("LOGIN", PRIMARY);
+
+        loginButton.addActionListener(
+                event -> login()
+        );
+
+        cardPanel.add(loginButton);
+
+        cardPanel.add(
+                Box.createVerticalStrut(15)
+        );
+
+        messageLabel =
+                new JLabel(" ");
+
+        messageLabel.setAlignmentX(
+                Component.CENTER_ALIGNMENT
+        );
+
+        messageLabel.setForeground(DANGER);
+
+        messageLabel.setFont(
+                new Font(
+                        "SansSerif",
+                        Font.PLAIN,
+                        13
+                )
+        );
+
+        cardPanel.add(messageLabel);
+
+        mainPanel.add(
+                cardPanel,
+                BorderLayout.CENTER
+        );
+
+        JLabel footerLabel =
+                createFooter(
+                        "ATM Simulator • Java Swing"
+                );
+
+        mainPanel.add(
+                footerLabel,
+                BorderLayout.SOUTH
+        );
+
+        setContentPane(mainPanel);
+    }
+
+    private void login() {
+
+        String accountNumber =
+                accountNumberField
+                        .getText()
+                        .trim();
+
+        String pin =
+                new String(
+                        pinField.getPassword()
+                ).trim();
+
+        if (accountNumber.isEmpty()
+                || pin.isEmpty()) {
+
+            messageLabel.setForeground(DANGER);
+
+            messageLabel.setText(
+                    "Please enter your account number and PIN."
+            );
+
+            return;
+        }
+
+        List<Account> accounts =
+                Storage.loadAccounts();
+
+        Account account = null;
+
+        for (Account item : accounts) {
+
+            if (item.getAccountNumber()
+                    .equals(accountNumber)) {
+
+                account = item;
+                break;
+            }
+        }
+
+        if (account == null) {
+
+            messageLabel.setForeground(DANGER);
+
+            messageLabel.setText(
+                    "Account not found."
+            );
+
+            return;
+        }
+
+        if (!account.checkPin(pin)) {
+
+            messageLabel.setForeground(DANGER);
+
+            messageLabel.setText(
+                    "Incorrect PIN."
+            );
+
+            return;
+        }
+
+        currentAccount = account;
+
+        messageLabel.setForeground(SUCCESS);
+
+        messageLabel.setText(
+                "Login successful."
+        );
+
+        showDashboard();
+    }
+
+    // =========================================================
+    // DASHBOARD
+    // =========================================================
+
+    private void showDashboard() {
+
+        getContentPane().removeAll();
+
+        JPanel mainPanel = createMainPanel();
+
+        JPanel headerPanel =
+                new JPanel(
+                        new BorderLayout()
+                );
+
+        headerPanel.setOpaque(false);
+
+        JLabel title =
+                createTitle(
+                        "ATM DASHBOARD",
+                        28
+                );
+
+        JLabel welcome =
+                createSubtitle(
+                        "Welcome, "
+                                + currentAccount.getName()
+                );
+
+        headerPanel.add(
+                title,
+                BorderLayout.NORTH
+        );
+
+        headerPanel.add(
+                welcome,
+                BorderLayout.SOUTH
+        );
+
+        mainPanel.add(
+                headerPanel,
+                BorderLayout.NORTH
+        );
+
+        JPanel centerPanel =
+                new JPanel();
+
+        centerPanel.setOpaque(false);
+
+        centerPanel.setBorder(
+                new EmptyBorder(
+                        25,
+                        0,
+                        10,
+                        0
+                )
+        );
+
+        centerPanel.setLayout(
+                new BoxLayout(
+                        centerPanel,
+                        BoxLayout.Y_AXIS
+                )
+        );
+
+        JPanel balanceCard =
+                createBalanceCard();
+
+        centerPanel.add(balanceCard);
+
+        centerPanel.add(
+                Box.createVerticalStrut(25)
+        );
+
+        JPanel menuGrid =
+                new JPanel(
+                        new GridLayout(
+                                4,
+                                2,
+                                15,
+                                15
+                        )
+                );
+
+        menuGrid.setOpaque(false);
+
+        JButton balanceButton =
+                createMenuButton(
+                        "CHECK BALANCE"
+                );
+
+        JButton depositButton =
+                createMenuButton(
+                        "DEPOSIT"
+                );
+
+        JButton withdrawButton =
+                createMenuButton(
+                        "WITHDRAW"
+                );
+
+        JButton transferButton =
+                createMenuButton(
+                        "TRANSFER"
+                );
+
+        JButton historyButton =
+                createMenuButton(
+                        "TRANSACTION HISTORY"
+                );
+
+        JButton accountButton =
+                createMenuButton(
+                        "ACCOUNT INFORMATION"
+                );
+
+        JButton pinButton =
+                createMenuButton(
+                        "CHANGE PIN"
+                );
+
+        JButton logoutButton =
+                createMenuButton(
+                        "LOGOUT"
+                );
+
+        balanceButton.addActionListener(
+                event -> showBalance()
+        );
+
+        depositButton.addActionListener(
+                event -> showDepositDialog()
+        );
+
+        withdrawButton.addActionListener(
+                event -> showWithdrawDialog()
+        );
+
+        transferButton.addActionListener(
+                event -> showTransferDialog()
+        );
+
+        historyButton.addActionListener(
+                event -> showTransactionHistory()
+        );
+
+        accountButton.addActionListener(
+                event -> showAccountInformation()
+        );
+
+        pinButton.addActionListener(
+                event -> showChangePinDialog()
+        );
+
+        logoutButton.addActionListener(
+                event -> logout()
+        );
+
+        menuGrid.add(balanceButton);
+        menuGrid.add(depositButton);
+        menuGrid.add(withdrawButton);
+        menuGrid.add(transferButton);
+        menuGrid.add(historyButton);
+        menuGrid.add(accountButton);
+        menuGrid.add(pinButton);
+        menuGrid.add(logoutButton);
+
+        centerPanel.add(menuGrid);
+
+        mainPanel.add(
+                centerPanel,
+                BorderLayout.CENTER
+        );
+
+        JLabel footer =
+                createFooter(
+                        "Account: "
+                                + currentAccount
+                                .getAccountNumber()
+                );
+
+        mainPanel.add(
+                footer,
+                BorderLayout.SOUTH
+        );
+
+        setContentPane(mainPanel);
+
+        revalidate();
+        repaint();
+    }
+
+    private JPanel createBalanceCard() {
+
+        JPanel panel =
+                new JPanel();
+
+        panel.setBackground(CARD);
+
+        panel.setBorder(
+                BorderFactory.createCompoundBorder(
+                        BorderFactory.createLineBorder(
+                                BORDER
+                        ),
+                        new EmptyBorder(
+                                18,
+                                20,
+                                18,
+                                20
+                        )
+                )
+        );
+
+        panel.setLayout(
+                new BoxLayout(
+                        panel,
+                        BoxLayout.Y_AXIS
+                )
+        );
+
+        JLabel label =
+                createLabel(
+                        "AVAILABLE BALANCE"
+                );
+
+        label.setAlignmentX(
+                Component.CENTER_ALIGNMENT
+        );
+
+        JLabel balance =
+                new JLabel(
+                        formatCurrency(
+                                currentAccount
+                                        .getBalance()
+                        )
+                );
+
+        balance.setAlignmentX(
+                Component.CENTER_ALIGNMENT
+        );
+
+        balance.setForeground(SUCCESS);
+
+        balance.setFont(
+                new Font(
+                        "SansSerif",
+                        Font.BOLD,
+                        28
+                )
+        );
+
+        panel.add(label);
+
+        panel.add(
+                Box.createVerticalStrut(5)
+        );
+
+        panel.add(balance);
+
+        return panel;
+    }
+
+    // =========================================================
+    // BALANCE
+    // =========================================================
+
+    private void showBalance() {
+
+        JOptionPane.showMessageDialog(
+                this,
+                "Available Balance\n\n"
+                        + formatCurrency(
+                                currentAccount
+                                        .getBalance()
+                        ),
+                "Account Balance",
+                JOptionPane.INFORMATION_MESSAGE
+        );
+    }
+
+    // =========================================================
+    // DEPOSIT
+    // =========================================================
+
+    private void showDepositDialog() {
+
+        String input =
+                JOptionPane.showInputDialog(
+                        this,
+                        "Enter deposit amount:",
+                        "Deposit",
+                        JOptionPane.PLAIN_MESSAGE
+                );
+
+        if (input == null) {
+            return;
+        }
+
+        try {
+
+            double amount =
+                    Double.parseDouble(
+                            input.trim()
+                    );
+
+            currentAccount.deposit(amount);
+
+            if (Storage.saveAccounts(
+                    Storage.loadAccounts()
+            )) {
+                /*
+                 * The actual current account object is
+                 * already loaded separately. We save below
+                 * using a fresh account list replacement.
+                 */
+            }
+
+            saveCurrentAccount();
+
+            JOptionPane.showMessageDialog(
+                    this,
+                    "Deposit successful!\n\n"
+                            + "Amount: "
+                            + formatCurrency(amount)
+                            + "\nNew Balance: "
+                            + formatCurrency(
+                                    currentAccount
+                                            .getBalance()
+                            ),
+                    "Deposit Successful",
+                    JOptionPane.INFORMATION_MESSAGE
+            );
+
+            showDashboard();
+
+        } catch (NumberFormatException error) {
+
+            showError(
+                    "Please enter a valid amount."
+            );
+
+        } catch (IllegalArgumentException error) {
+
+            showError(
+                    error.getMessage()
+            );
+        }
+    }
+
+    // =========================================================
+    // WITHDRAW
+    // =========================================================
+
+    private void showWithdrawDialog() {
+
+        String input =
+                JOptionPane.showInputDialog(
+                        this,
+                        "Enter withdrawal amount:",
+                        "Withdraw",
+                        JOptionPane.PLAIN_MESSAGE
+                );
+
+        if (input == null) {
+            return;
+        }
+
+        try {
+
+            double amount =
+                    Double.parseDouble(
+                            input.trim()
+                    );
+
+            currentAccount.withdraw(amount);
+
+            saveCurrentAccount();
+
+            double remaining =
+                    20000
+                            - currentAccount
+                            .getTodayWithdrawals();
+
+            JOptionPane.showMessageDialog(
+                    this,
+                    "Withdrawal successful!\n\n"
+                            + "Amount: "
+                            + formatCurrency(amount)
+                            + "\nRemaining Balance: "
+                            + formatCurrency(
+                                    currentAccount
+                                            .getBalance()
+                            )
+                            + "\nRemaining Daily Limit: "
+                            + formatCurrency(
+                                    remaining
+                            ),
+                    "Withdrawal Successful",
+                    JOptionPane.INFORMATION_MESSAGE
+            );
+
+            showDashboard();
+
+        } catch (NumberFormatException error) {
+
+            showError(
+                    "Please enter a valid amount."
+            );
+
+        } catch (IllegalArgumentException error) {
+
+            showError(
+                    error.getMessage()
+            );
+        }
+    }
+
+    // =========================================================
+    // TRANSFER
+    // =========================================================
+
+    private void showTransferDialog() {
+
+        String recipientNumber =
+                JOptionPane.showInputDialog(
+                        this,
+                        "Recipient account number:",
+                        "Transfer",
+                        JOptionPane.PLAIN_MESSAGE
+                );
+
+        if (recipientNumber == null) {
+            return;
+        }
+
+        recipientNumber =
+                recipientNumber.trim();
+
+        List<Account> accounts =
+                Storage.loadAccounts();
+
+        Account recipient = null;
+
+        for (Account account : accounts) {
+
+            if (account.getAccountNumber()
+                    .equals(recipientNumber)) {
+
+                recipient = account;
+                break;
+            }
+        }
+
+        if (recipient == null) {
+
+            showError(
+                    "Recipient account not found."
+            );
+
+            return;
+        }
+
+        if (recipient
+                .getAccountNumber()
+                .equals(
+                        currentAccount
+                                .getAccountNumber()
+                )) {
+
+            showError(
+                    "You cannot transfer money to your own account."
+            );
+
+            return;
+        }
+
+        String input =
+                JOptionPane.showInputDialog(
+                        this,
+                        "Recipient: "
+                                + recipient.getName()
+                                + "\n\nEnter transfer amount:",
+                        "Transfer",
+                        JOptionPane.PLAIN_MESSAGE
+                );
+
+        if (input == null) {
+            return;
+        }
+
+        try {
+
+            double amount =
+                    Double.parseDouble(
+                            input.trim()
+                    );
+
+            int confirmation =
+                    JOptionPane.showConfirmDialog(
+                            this,
+                            "Recipient: "
+                                    + recipient.getName()
+                                    + "\nAccount: "
+                                    + recipient
+                                    .getAccountNumber()
+                                    + "\nAmount: "
+                                    + formatCurrency(amount)
+                                    + "\n\nProceed with transfer?",
+                            "Confirm Transfer",
+                            JOptionPane.YES_NO_OPTION
+                    );
+
+            if (confirmation
+                    != JOptionPane.YES_OPTION) {
+
+                return;
+            }
+
+            currentAccount.transferTo(
+                    recipient,
+                    amount
+            );
+
+            /*
+             * Rebuild the complete account list so that
+             * both sender and recipient changes are saved.
+             */
+            List<Account> updatedAccounts =
+                    Storage.loadAccounts();
+
+            Account savedSender = null;
+            Account savedRecipient = null;
+
+            for (Account account : updatedAccounts) {
+
+                if (account
+                        .getAccountNumber()
+                        .equals(
+                                currentAccount
+                                        .getAccountNumber()
+                        )) {
+
+                    savedSender = account;
+                }
+
+                if (account
+                        .getAccountNumber()
+                        .equals(
+                                recipient
+                                        .getAccountNumber()
+                        )) {
+
+                    savedRecipient = account;
+                }
+            }
+
+            if (savedSender != null) {
+
+                /*
+                 * Copying the updated values back into
+                 * the loaded account list is handled by
+                 * replacing the account references below.
+                 */
+            }
+
+            /*
+             * Since Storage works with complete Account
+             * objects, save the currently loaded accounts
+             * after applying the operation.
+             */
+            List<Account> allAccounts =
+                    Storage.loadAccounts();
+
+            for (Account account : allAccounts) {
+
+                if (account
+                        .getAccountNumber()
+                        .equals(
+                                currentAccount
+                                        .getAccountNumber()
+                        )) {
+
+                    copyAccountData(
+                            currentAccount,
+                            account
+                    );
+                }
+
+                if (account
+                        .getAccountNumber()
+                        .equals(
+                                recipient
+                                        .getAccountNumber()
+                        )) {
+
+                    copyAccountData(
+                            recipient,
+                            account
+                    );
+                }
+            }
+
+            Storage.saveAccounts(allAccounts);
+
+            JOptionPane.showMessageDialog(
+                    this,
+                    "Transfer successful!\n\n"
+                            + "Recipient: "
+                            + recipient.getName()
+                            + "\nAmount: "
+                            + formatCurrency(amount)
+                            + "\nRemaining Balance: "
+                            + formatCurrency(
+                                    currentAccount
+                                            .getBalance()
+                            ),
+                    "Transfer Successful",
+                    JOptionPane.INFORMATION_MESSAGE
+            );
+
+            showDashboard();
+
+        } catch (NumberFormatException error) {
+
+            showError(
+                    "Please enter a valid amount."
+            );
+
+        } catch (IllegalArgumentException error) {
+
+            showError(
+                    error.getMessage()
+            );
+        }
+    }
+
+    // =========================================================
+    // TRANSACTION HISTORY
+    // =========================================================
+
+    private void showTransactionHistory() {
+
+        List<Transaction> transactions =
+                currentAccount
+                        .getTransactions();
+
+        JTextArea area =
+                new JTextArea();
+
+        area.setEditable(false);
+        area.setBackground(BACKGROUND);
+        area.setForeground(TEXT);
+
+        area.setFont(
+                new Font(
+                        "Monospaced",
+                        Font.PLAIN,
+                        13
+                )
+        );
+
+        area.setLineWrap(true);
+        area.setWrapStyleWord(true);
+
+        if (transactions.isEmpty()) {
+
+            area.setText(
+                    "No transactions found."
+            );
+
+        } else {
+
+            StringBuilder builder =
+                    new StringBuilder();
+
+            for (int i = 0;
+                 i < transactions.size();
+                 i++) {
+
+                Transaction transaction =
+                        transactions.get(i);
+
+                builder.append(
+                        "TRANSACTION #"
+                );
+
+                builder.append(i + 1);
+
+                builder.append(
+                        "\n--------------------------------"
+                );
+
+                builder.append(
+                        "\nID: "
+                );
+
+                builder.append(
+                        transaction.getId()
+                );
+
+                builder.append(
+                        "\nType: "
+                );
+
+                builder.append(
+                        transaction.getType()
+                );
+
+                builder.append(
+                        "\nAmount: "
+                );
+
+                builder.append(
+                        formatCurrency(
+                                transaction
+                                        .getAmount()
+                        )
+                );
+
+                builder.append(
+                        "\nDescription: "
+                );
+
+                builder.append(
+                        transaction
+                                .getDescription()
+                );
+
+                if (transaction
+                        .getRelatedAccount()
+                        != null) {
+
+                    builder.append(
+                            "\nRelated Account: "
+                    );
+
+                    builder.append(
+                            transaction
+                                    .getRelatedAccount()
+                    );
+                }
+
+                builder.append(
+                        "\nDate: "
+                );
+
+                builder.append(
+                        transaction.getDate()
+                );
+
+                builder.append(
+                        "\nBalance After: "
+                );
+
+                builder.append(
+                        formatCurrency(
+                                transaction
+                                        .getBalanceAfter()
+                        )
+                );
+
+                builder.append(
+                        "\n\n"
+                );
+            }
+
+            area.setText(
+                    builder.toString()
+            );
+        }
+
+        JScrollPane scrollPane =
+                new JScrollPane(area);
+
+        scrollPane.setPreferredSize(
+                new Dimension(
+                        550,
+                        450
+                )
+        );
+
+        JOptionPane.showMessageDialog(
+                this,
+                scrollPane,
+                "Transaction History",
+                JOptionPane.PLAIN_MESSAGE
+        );
+    }
+
+    // =========================================================
+    // ACCOUNT INFORMATION
+    // =========================================================
+
+    private void showAccountInformation() {
+
+        String information =
+                "ACCOUNT INFORMATION\n\n"
+                        + "Account Number: "
+                        + currentAccount
+                        .getAccountNumber()
+                        + "\n\n"
+                        + "Account Holder: "
+                        + currentAccount
+                        .getName()
+                        + "\n\n"
+                        + "Account Type: "
+                        + currentAccount
+                        .getAccountType()
+                        + "\n\n"
+                        + "Balance: "
+                        + formatCurrency(
+                                currentAccount
+                                        .getBalance()
+                        );
+
+        JOptionPane.showMessageDialog(
+                this,
+                information,
+                "Account Information",
+                JOptionPane.INFORMATION_MESSAGE
+        );
+    }
+
+    // =========================================================
+    // CHANGE PIN
+    // =========================================================
+
+    private void showChangePinDialog() {
+
+        JPanel panel =
+                new JPanel();
+
+        panel.setLayout(
+                new GridLayout(
+                        3,
+                        2,
+                        10,
+                        10
+                )
+        );
+
+        JPasswordField currentPin =
+                new JPasswordField();
+
+        JPasswordField newPin =
+                new JPasswordField();
+
+        JPasswordField confirmPin =
+                new JPasswordField();
+
+        panel.add(
+                new JLabel("Current PIN:")
+        );
+
+        panel.add(currentPin);
+
+        panel.add(
+                new JLabel("New PIN:")
+        );
+
+        panel.add(newPin);
+
+        panel.add(
+                new JLabel("Confirm PIN:")
+        );
+
+        panel.add(confirmPin);
+
+        int result =
+                JOptionPane.showConfirmDialog(
+                        this,
+                        panel,
+                        "Change PIN",
+                        JOptionPane.OK_CANCEL_OPTION
+                );
+
+        if (result
+                != JOptionPane.OK_OPTION) {
+
+            return;
+        }
+
+        String current =
+                new String(
+                        currentPin.getPassword()
+                );
+
+        String newValue =
+                new String(
+                        newPin.getPassword()
+                );
+
+        String confirmation =
+                new String(
+                        confirmPin.getPassword()
+                );
+
+        if (!currentAccount.checkPin(current)) {
+
+            showError(
+                    "Incorrect current PIN."
+            );
+
+            return;
+        }
+
+        if (!newValue.equals(confirmation)) {
+
+            showError(
+                    "New PINs do not match."
+            );
+
+            return;
+        }
+
+        try {
+
+            currentAccount.changePin(
+                    newValue
+            );
+
+            saveCurrentAccount();
+
+            JOptionPane.showMessageDialog(
+                    this,
+                    "PIN successfully changed.",
+                    "Success",
+                    JOptionPane.INFORMATION_MESSAGE
+            );
+
+        } catch (IllegalArgumentException error) {
+
+            showError(
+                    error.getMessage()
+            );
+        }
+    }
+
+    // =========================================================
+    // LOGOUT
+    // =========================================================
+
+    private void logout() {
+
+        int result =
+                JOptionPane.showConfirmDialog(
+                        this,
+                        "Are you sure you want to logout?",
+                        "Logout",
+                        JOptionPane.YES_NO_OPTION
+                );
+
+        if (result
+                != JOptionPane.YES_OPTION) {
+
+            return;
+        }
+
+        currentAccount = null;
+
+        getContentPane().removeAll();
+
+        buildLoginScreen();
+
+        revalidate();
+        repaint();
+    }
+
+    // =========================================================
+    // STORAGE
+    // =========================================================
+
+    private void saveCurrentAccount() {
+
+        List<Account> accounts =
+                Storage.loadAccounts();
+
+        for (Account account : accounts) {
+
+            if (account
+                    .getAccountNumber()
+                    .equals(
+                            currentAccount
+                                    .getAccountNumber()
+                    )) {
+
+                copyAccountData(
+                        currentAccount,
+                        account
+                );
+
+                break;
+            }
+        }
+
+        Storage.saveAccounts(accounts);
+    }
+
+    private void copyAccountData(
+            Account source,
+            Account target
+    ) {
+
+        /*
+         * Account currently exposes getters but does
+         * not expose setters. Therefore, the safest
+         * approach with the existing class design is
+         * to copy the state through the available
+         * operations where possible.
+         *
+         * For this GUI version, transactions and balance
+         * persistence are handled by reconstructing the
+         * account data below.
+         */
+
+        while (
+                target.getTransactions().size()
+                        > 0
+        ) {
+
+            target.getTransactions().remove(
+                    target.getTransactions().size() - 1
+            );
+        }
+
+        target.getTransactions().addAll(
+                source.getTransactions()
+        );
+
+        double difference =
+                source.getBalance()
+                        - target.getBalance();
+
+        if (difference > 0) {
+
+            target.depositWithoutTransaction(
+                    difference
+            );
+
+        } else if (difference < 0) {
+
+            target.withdrawWithoutTransaction(
+                    Math.abs(difference)
+            );
+        }
+    }
+
+    // =========================================================
+    // UI HELPERS
+    // =========================================================
+
+    private JPanel createMainPanel() {
+
+        JPanel panel =
+                new JPanel(
+                        new BorderLayout(
+                                0,
+                                20
+                        )
+                );
+
+        panel.setBackground(BACKGROUND);
+
+        panel.setBorder(
+                new EmptyBorder(
+                        35,
+                        45,
+                        30,
+                        45
+                )
+        );
+
+        return panel;
+    }
+
+    private JPanel createCardPanel() {
+
+        JPanel panel =
+                new JPanel();
+
+        panel.setBackground(CARD);
+
+        panel.setBorder(
+                new EmptyBorder(
+                        30,
+                        30,
+                        30,
+                        30
+                )
+        );
+
+        panel.setLayout(
+                new BoxLayout(
+                        panel,
+                        BoxLayout.Y_AXIS
+                )
+        );
+
+        return panel;
+    }
+
+    private JLabel createTitle(
+            String text,
+            int size
+    ) {
+
+        JLabel label =
+                new JLabel(text);
+
+        label.setAlignmentX(
+                Component.CENTER_ALIGNMENT
+        );
+
+        label.setForeground(TEXT);
+
+        label.setFont(
+                new Font(
+                        "SansSerif",
+                        Font.BOLD,
+                        size
+                )
+        );
+
+        return label;
+    }
+
+    private JLabel createSubtitle(
+            String text
+    ) {
+
+        JLabel label =
+                new JLabel(text);
+
+        label.setAlignmentX(
+                Component.CENTER_ALIGNMENT
+        );
+
+        label.setForeground(MUTED);
+
+        label.setFont(
+                new Font(
+                        "SansSerif",
+                        Font.PLAIN,
+                        15
+                )
+        );
+
+        return label;
+    }
+
+    private JLabel createLabel(
+            String text
+    ) {
+
+        JLabel label =
+                new JLabel(text);
+
+        label.setForeground(MUTED);
+
+        label.setFont(
+                new Font(
+                        "SansSerif",
+                        Font.PLAIN,
+                        14
+                )
+        );
+
+        return label;
+    }
+
+    private JLabel createFooter(
+            String text
+    ) {
+
+        JLabel label =
+                new JLabel(text);
+
+        label.setHorizontalAlignment(
+                SwingConstants.CENTER
+        );
+
+        label.setForeground(MUTED);
+
+        label.setFont(
+                new Font(
+                        "SansSerif",
+                        Font.PLAIN,
+                        12
+                )
+        );
+
+        return label;
+    }
+
+    private JButton createButton(
+            String text,
+            Color color
+    ) {
+
+        JButton button =
+                new JButton(text);
+
+        button.setAlignmentX(
+                Component.CENTER_ALIGNMENT
+        );
+
+        button.setMaximumSize(
+                new Dimension(
+                        Integer.MAX_VALUE,
+                        48
+                )
+        );
+
+        button.setBackground(color);
+        button.setForeground(Color.WHITE);
+
+        button.setFont(
+                new Font(
+                        "SansSerif",
+                        Font.BOLD,
+                        14
+                )
+        );
+
+        button.setFocusPainted(false);
+
+        button.setBorder(
+                BorderFactory.createEmptyBorder(
+                        10,
+                        20,
+                        10,
+                        20
+                )
+        );
+
+        button.setCursor(
+                new Cursor(
+                        Cursor.HAND_CURSOR
+                )
+        );
+
+        return button;
+    }
+
+    private JButton createMenuButton(
+            String text
+    ) {
+
+        JButton button =
+                createButton(
+                        text,
+                        CARD
+                );
+
+        button.setBorder(
+                BorderFactory.createLineBorder(
+                        BORDER
+                )
+        );
+
+        return button;
+    }
+
+    private void styleTextField(
+            JTextField field
+    ) {
+
+        field.setMaximumSize(
+                new Dimension(
+                        Integer.MAX_VALUE,
+                        45
+                )
+        );
+
+        field.setPreferredSize(
+                new Dimension(
+                        350,
+                        45
+                )
+        );
+
+        field.setBackground(
+                new Color(
+                        31,
+                        45,
+                        70
+                )
+        );
+
+        field.setForeground(TEXT);
+
+        field.setCaretColor(TEXT);
+
+        field.setFont(
+                new Font(
+                        "SansSerif",
+                        Font.PLAIN,
+                        16
+                )
+        );
+
+        field.setBorder(
+                BorderFactory.createCompoundBorder(
+                        BorderFactory.createLineBorder(
+                                BORDER
+                        ),
+                        new EmptyBorder(
+                                5,
+                                10,
+                                5,
+                                10
+                        )
+                )
+        );
+    }
+
+    private String formatCurrency(
+            double amount
+    ) {
+
+        return String.format(
+                "₱%.2f",
+                amount
+        );
+    }
+
+    private void showError(
+            String message
+    ) {
+
+        JOptionPane.showMessageDialog(
+                this,
+                message,
+                "Error",
+                JOptionPane.ERROR_MESSAGE
+        );
+    }
+}

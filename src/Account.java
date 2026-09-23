@@ -1,5 +1,6 @@
 import java.util.ArrayList;
 import java.util.List;
+import java.time.LocalDate;
 
 public class Account {
 
@@ -185,18 +186,70 @@ public class Account {
     public double getTodayWithdrawals() {
         double total = 0;
 
+        String today = LocalDate.now().toString();
+
         for (Transaction transaction : transactions) {
             if (transaction.getType()
                     .equals("WITHDRAWAL")) {
 
-                total += transaction.getAmount();
+                String transactionDate =
+                        transaction.getDate()
+                                .toString()
+                                .substring(0, 10);
+
+                if (transactionDate.equals(today)) {
+                    total += transaction.getAmount();
+                }
             }
         }
 
         return total;
     }
 
+    /*
+     * GUI helper method.
+     *
+     * Used by ATMGui when the GUI needs to update
+     * the balance without automatically creating
+     * a transaction.
+     */
+    public void depositWithoutTransaction(double amount) {
+
+        if (!Double.isFinite(amount) || amount < 0) {
+            throw new IllegalArgumentException(
+                    "Invalid deposit amount."
+            );
+        }
+
+        balance += amount;
+    }
+
+    /*
+     * GUI helper method.
+     *
+     * Used by ATMGui when the GUI needs to update
+     * the balance without automatically creating
+     * a transaction.
+     */
+    public void withdrawWithoutTransaction(double amount) {
+
+        if (!Double.isFinite(amount) || amount < 0) {
+            throw new IllegalArgumentException(
+                    "Invalid withdrawal amount."
+            );
+        }
+
+        if (amount > balance) {
+            throw new IllegalArgumentException(
+                    "Insufficient funds."
+            );
+        }
+
+        balance -= amount;
+    }
+
     public void changePin(String newPin) {
+
         if (!newPin.matches("\\d{4}")) {
             throw new IllegalArgumentException(
                     "PIN must contain exactly 4 digits."
